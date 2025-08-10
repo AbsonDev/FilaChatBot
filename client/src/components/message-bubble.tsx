@@ -42,7 +42,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               <div className="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
                 <User className="text-white w-3 h-3" />
               </div>
-              <span className="text-xs text-gray-600 font-medium">Ana - Atendimento</span>
+              <span className="text-xs text-gray-600 font-medium">Agente MCP - Filazero</span>
             </div>
             <p className="text-whatsapp-text text-sm">{message.content}</p>
           </div>

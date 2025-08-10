@@ -26,7 +26,7 @@ export default function MessageList({ messages, isTyping }: MessageListProps) {
       <div className="flex justify-center">
         <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-sm max-w-md text-center">
           <Info className="inline w-4 h-4 mr-2" />
-          Bem-vindo ao atendimento Filazero! Como podemos ajudá-lo hoje?
+          Bem-vindo ao atendimento com Agente MCP! Como posso ajudá-lo hoje?
         </div>
       </div>
 

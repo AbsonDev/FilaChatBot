@@ -20,10 +20,11 @@ export function useMCPClient() {
   });
 
   useEffect(() => {
-    if (statusData) {
-      setMcpStatus(statusData.connected);
-      setQueuePosition(statusData.queuePosition);
-      setWaitTime(statusData.waitTime);
+    if (statusData && typeof statusData === 'object') {
+      const data = statusData as MCPStatus;
+      setMcpStatus(data.connected || false);
+      setQueuePosition(data.queuePosition || 1);
+      setWaitTime(data.waitTime || 1);
     }
   }, [statusData]);
 

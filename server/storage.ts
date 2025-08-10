@@ -28,9 +28,9 @@ export class MemStorage implements IStorage {
     this.messages = new Map();
     this.agents = new Map();
     
-    // Create a default agent
+    // Create a default MCP agent
     this.createAgent({
-      name: "Ana - Atendimento",
+      name: "Agente MCP - Filazero",
       isOnline: true,
       currentConversations: 0,
     });
@@ -43,8 +43,11 @@ export class MemStorage implements IStorage {
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const id = randomUUID();
     const conversation: Conversation = {
-      ...insertConversation,
       id,
+      userId: insertConversation.userId,
+      agentId: insertConversation.agentId || null,
+      status: insertConversation.status || "active",
+      queuePosition: insertConversation.queuePosition || 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -70,8 +73,13 @@ export class MemStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const id = randomUUID();
     const message: Message = {
-      ...insertMessage,
       id,
+      conversationId: insertMessage.conversationId,
+      senderId: insertMessage.senderId,
+      senderType: insertMessage.senderType,
+      content: insertMessage.content,
+      messageType: insertMessage.messageType || "text",
+      isRead: insertMessage.isRead || false,
       createdAt: new Date(),
     };
     this.messages.set(id, message);
@@ -92,7 +100,12 @@ export class MemStorage implements IStorage {
 
   async createAgent(insertAgent: InsertAgent): Promise<Agent> {
     const id = randomUUID();
-    const agent: Agent = { ...insertAgent, id };
+    const agent: Agent = {
+      id,
+      name: insertAgent.name,
+      isOnline: insertAgent.isOnline || false,
+      currentConversations: insertAgent.currentConversations || 0,
+    };
     this.agents.set(id, agent);
     return agent;
   }

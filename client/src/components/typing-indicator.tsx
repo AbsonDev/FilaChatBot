@@ -9,7 +9,7 @@ export default function TypingIndicator() {
             <div className="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
               <User className="text-white w-3 h-3" />
             </div>
-            <span className="text-xs text-gray-600 font-medium">Ana - Atendimento</span>
+            <span className="text-xs text-gray-600 font-medium">Agente MCP - Filazero</span>
           </div>
           <div className="flex items-center space-x-1">
             <span className="text-gray-500 text-sm">Digitando</span>

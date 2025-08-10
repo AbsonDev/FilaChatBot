@@ -1,6 +1,6 @@
 # Overview
 
-This is a WhatsApp-style customer support chat application built with React (frontend) and Express.js (backend). The application provides real-time messaging functionality between users and customer service agents, featuring a modern UI with WhatsApp-inspired design elements. It includes conversation management, real-time WebSocket communication, and a complete customer support workflow with queue management and agent assignment.
+This is a WhatsApp-style customer support chat application with intelligent MCP (Model Context Protocol) agent integration. Built with React (frontend) and Express.js (backend), the application provides real-time messaging functionality between users and an AI-powered customer service agent. It features a modern UI with WhatsApp-inspired design elements, conversation management, real-time WebSocket communication, and MCP agent integration for intelligent responses.
 
 # User Preferences
 
@@ -25,10 +25,17 @@ The component structure follows a clear separation between UI components (`/comp
 The backend uses **Express.js with TypeScript** in an ESM module setup:
 
 - **API Structure**: RESTful endpoints for conversation and message management
-- **Real-time Communication**: WebSocket server for instant messaging and typing indicators
+- **Real-time Communication**: WebSocket server for instant messaging and typing indicators  
+- **MCP Agent Integration**: Intelligent agent using Model Context Protocol for automated responses
 - **Database Layer**: Drizzle ORM with PostgreSQL for data persistence
 - **Session Management**: In-memory storage implementation with interface for easy database migration
 - **Development Setup**: Custom Vite integration for seamless full-stack development
+
+### MCP Agent Features
+- **Intelligent Responses**: Uses MCP protocol to call Filazero service for smart replies
+- **Local Fallback**: Built-in intent detection and response generation when MCP service is unavailable
+- **Context Awareness**: Maintains conversation history and user context for better responses
+- **Real-time Processing**: Integrates with WebSocket for immediate response delivery
 
 ## Data Storage Solutions
 

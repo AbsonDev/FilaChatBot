@@ -42,7 +42,7 @@ export default function ChatPage() {
   });
 
   useEffect(() => {
-    if (existingMessages) {
+    if (existingMessages && Array.isArray(existingMessages)) {
       setMessages(existingMessages);
     }
   }, [existingMessages]);
@@ -123,7 +123,7 @@ export default function ChatPage() {
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <div className={`w-2 h-2 rounded-full ${mcpStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-gray-600">MCP Filazero</span>
+              <span className="text-gray-600">Agente MCP</span>
             </div>
             <span className="text-gray-400">|</span>
             <span className="text-gray-600">Fila: <span className="font-medium">{queuePosition}</span></span>
@@ -131,8 +131,7 @@ export default function ChatPage() {
             <span className="text-gray-600">Tempo: <span className="font-medium">{waitTime}min</span></span>
           </div>
           <div className="text-gray-400">
-            <i className="fas fa-shield-alt mr-1"></i>
-            Criptografado
+            🔒 Seguro
           </div>
         </div>
       </div>

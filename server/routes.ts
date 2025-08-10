@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { mcpAgent } from "./mcp-agent";
 import { insertConversationSchema, insertMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -58,30 +59,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               });
 
-              // Simulate agent response after a delay
+              // Process message with MCP agent
               if (message.data.senderType === 'user') {
-                setTimeout(async () => {
-                  const agent = await storage.getAvailableAgent();
-                  if (agent) {
-                    const agentMessage = await storage.createMessage({
-                      conversationId: message.conversationId!,
-                      senderId: agent.id,
-                      senderType: 'agent',
-                      content: "Obrigado pela sua mensagem! Como posso ajudá-lo hoje?",
-                      messageType: 'text',
-                      isRead: false,
-                    });
+                // Show typing indicator first
+                setTimeout(() => {
+                  clients.forEach((client) => {
+                    if (client.conversationId === message.conversationId && client.ws.readyState === WebSocket.OPEN) {
+                      client.ws.send(JSON.stringify({
+                        type: 'user_typing',
+                        data: { isTyping: true, senderType: 'agent' }
+                      }));
+                    }
+                  });
+                }, 500);
 
-                    clients.forEach((client) => {
-                      if (client.conversationId === message.conversationId && client.ws.readyState === WebSocket.OPEN) {
-                        client.ws.send(JSON.stringify({
-                          type: 'new_message',
-                          data: agentMessage
-                        }));
-                      }
-                    });
+                // Process with MCP agent
+                setTimeout(async () => {
+                  try {
+                    await mcpAgent.processMessage(message.conversationId!, message.data.content);
+                    
+                    // Get the latest message from the agent
+                    const messages = await storage.getMessagesByConversation(message.conversationId!);
+                    const latestAgentMessage = messages
+                      .filter(msg => msg.senderType === 'agent')
+                      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())[0];
+
+                    if (latestAgentMessage) {
+                      // Stop typing and send response
+                      clients.forEach((client) => {
+                        if (client.conversationId === message.conversationId && client.ws.readyState === WebSocket.OPEN) {
+                          client.ws.send(JSON.stringify({
+                            type: 'user_typing',
+                            data: { isTyping: false, senderType: 'agent' }
+                          }));
+                          
+                          client.ws.send(JSON.stringify({
+                            type: 'new_message',
+                            data: latestAgentMessage
+                          }));
+                        }
+                      });
+                    }
+                  } catch (error) {
+                    console.error('MCP agent error:', error);
                   }
-                }, 2000);
+                }, 2500);
               }
             }
             break;
@@ -152,18 +174,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // MCP integration endpoint (stub for now since the provided URL returns 404)
+  // MCP integration endpoints
   app.get('/api/mcp/status', async (req, res) => {
     try {
-      // TODO: Implement actual MCP Filazero integration when endpoint is available
+      const mcpStatus = await mcpAgent.checkMCPStatus();
       res.json({
-        connected: true,
+        connected: mcpStatus.connected,
+        latency: mcpStatus.latency,
         queuePosition: Math.floor(Math.random() * 5) + 1,
         waitTime: Math.floor(Math.random() * 10) + 1,
-        agentsOnline: 3
+        agentsOnline: mcpStatus.connected ? 3 : 1,
+        service: 'MCP Filazero',
+        agent_id: 'mcp-agent-001'
       });
     } catch (error) {
       res.status(500).json({ error: 'MCP connection failed' });
+    }
+  });
+
+  // Manual MCP call endpoint for testing
+  app.post('/api/mcp/call', async (req, res) => {
+    try {
+      const { message, conversationId } = req.body;
+      if (!message || !conversationId) {
+        return res.status(400).json({ error: 'Message and conversationId required' });
+      }
+
+      await mcpAgent.processMessage(conversationId, message);
+      res.json({ success: true, message: 'MCP agent processed message' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to call MCP agent' });
     }
   });
 

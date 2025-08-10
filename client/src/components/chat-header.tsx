@@ -14,7 +14,7 @@ export default function ChatHeader({ isOnline, conversationId }: ChatHeaderProps
             <Headphones className="text-white w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-whatsapp-text font-semibold text-lg">Filazero Atendimento</h1>
+            <h1 className="text-whatsapp-text font-semibold text-lg">Atendimento com Agente MCP</h1>
             <p className="text-sm text-gray-500 flex items-center">
               <span className={`w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
               <span>{isOnline ? 'Atendente online' : 'Conectando...'}</span>
