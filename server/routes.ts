@@ -207,5 +207,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Terminal cache management endpoints
+  app.get('/api/mcp/terminal-cache', async (req, res) => {
+    try {
+      const status = mcpAgent.getTerminalCacheStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get terminal cache status' });
+    }
+  });
+
+  app.delete('/api/mcp/terminal-cache/:sessionId?', async (req, res) => {
+    try {
+      mcpAgent.clearTerminalCache(req.params.sessionId);
+      res.json({ success: true, message: 'Terminal cache cleared' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear terminal cache' });
+    }
+  });
+
+  // Force terminal info fetch endpoint for testing
+  app.post('/api/mcp/fetch-terminal', async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ error: 'sessionId required' });
+      }
+
+      const terminalInfo = await mcpAgent.getTerminalInfo(sessionId);
+      res.json({ success: true, terminalInfo });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch terminal info' });
+    }
+  });
+
   return httpServer;
 }

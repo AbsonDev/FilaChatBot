@@ -4,16 +4,76 @@ import { storage } from "./storage";
 export class MCPAgent {
   private filazeroAgentUrl: string;
   private agentId: string;
+  private terminalCache: Map<string, any>;
 
   constructor() {
     // Always use Vercel agent (hardcoded fallback for reliability)
     this.filazeroAgentUrl = process.env.FILAZERO_AGENT_URL || "https://filazero-agent.vercel.app";
     this.agentId = "filazero-chatbot-proxy";
+    this.terminalCache = new Map();
     
     console.log(`🔗 FilaChatBot MCP Agent initialized:`);
     console.log(`   Agent URL: ${this.filazeroAgentUrl}`);
     console.log(`   Agent ID: ${this.agentId}`);
     console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+  }
+
+  // Get terminal information using the get_terminal tool
+  async getTerminalInfo(sessionId: string): Promise<any> {
+    try {
+      // Check cache first
+      if (this.terminalCache.has(sessionId)) {
+        const cached = this.terminalCache.get(sessionId);
+        // Cache for 5 minutes
+        if (cached.timestamp > Date.now() - 300000) {
+          console.log('📱 Using cached terminal info for session:', sessionId);
+          return cached.data;
+        }
+      }
+
+      console.log(`🔍 Fetching terminal info for session: ${sessionId}`);
+      
+      // Call the Filazero Agent API asking it to use get_terminal tool
+      const response = await fetch(`${this.filazeroAgentUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: "USE_TOOL: get_terminal com accessKey d6779a60360d455b9af96c1b68e066c5",
+          sessionId,
+          context: {
+            forceToolUse: true,
+            toolName: 'get_terminal',
+            toolParams: {
+              accessKey: 'd6779a60360d455b9af96c1b68e066c5'
+            }
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Terminal info retrieved via tool:', data);
+        
+        // Extract terminal data from response
+        const terminalData = data.terminalData || data.toolResult || data.response;
+        
+        // Cache the terminal info
+        this.terminalCache.set(sessionId, {
+          data: terminalData,
+          timestamp: Date.now()
+        });
+        
+        return terminalData;
+      } else {
+        console.error(`❌ Failed to get terminal info: ${response.status}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error fetching terminal info:', error);
+      return null;
+    }
   }
 
   // Call Filazero Agent to get intelligent AI response
@@ -23,6 +83,19 @@ export class MCPAgent {
       console.log(`   URL: ${this.filazeroAgentUrl}/api/chat`);
       console.log(`   Message: ${userMessage}`);
       
+      // Get terminal info if this is the first message or we don't have it
+      let terminalInfo = conversationContext.terminal_info;
+      let enhancedMessage = userMessage;
+      
+      if (!terminalInfo || conversationContext.is_first_message) {
+        terminalInfo = await this.getTerminalInfo(conversationContext.conversation_id);
+        
+        // For first message, prepend instruction to use get_terminal
+        if (conversationContext.is_first_message) {
+          enhancedMessage = `[SYSTEM: Esta é a primeira mensagem da conversa. Use a ferramenta get_terminal com accessKey d6779a60360d455b9af96c1b68e066c5 para obter informações do terminal antes de responder]\n\n${userMessage}`;
+        }
+      }
+      
       // Call the Filazero Agent API
       const response = await fetch(`${this.filazeroAgentUrl}/api/chat`, {
         method: 'POST',
@@ -30,12 +103,17 @@ export class MCPAgent {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: userMessage,
+          message: enhancedMessage,
           sessionId: conversationContext?.conversation_id || `chat-${Date.now()}`,
           context: {
             userId: conversationContext?.user_id,
             queuePosition: conversationContext?.queue_position,
-            previousMessages: conversationContext?.previous_messages?.slice(-3) // Last 3 messages
+            previousMessages: conversationContext?.previous_messages?.slice(-3), // Last 3 messages
+            terminalInfo: terminalInfo, // Include terminal information
+            shouldUseTools: true, // Explicitly tell the agent to use tools
+            requiredTools: ['get_terminal'], // Suggest using get_terminal tool
+            isFirstMessage: conversationContext.is_first_message,
+            terminalAccessKey: 'd6779a60360d455b9af96c1b68e066c5'
           }
         })
       });
@@ -104,11 +182,16 @@ export class MCPAgent {
       const conversation = await storage.getConversation(conversationId);
       const messages = await storage.getMessagesByConversation(conversationId);
       
+      // Check if this is the first message in the conversation
+      const isFirstMessage = messages.filter(m => m.senderType === 'user').length === 0;
+      
       const context = {
         conversation_id: conversationId,
         user_id: conversation?.userId,
         previous_messages: messages.slice(-5), // Last 5 messages for context
-        queue_position: conversation?.queuePosition
+        queue_position: conversation?.queuePosition,
+        is_first_message: isFirstMessage,
+        terminal_info: null // Will be fetched in callMCP if needed
       };
 
       // Call MCP to get intelligent response
@@ -156,6 +239,25 @@ export class MCPAgent {
       console.error('Failed to check Filazero Agent status:', error);
       return { connected: false };
     }
+  }
+
+  // Clear terminal cache for a specific session or all sessions
+  clearTerminalCache(sessionId?: string): void {
+    if (sessionId) {
+      this.terminalCache.delete(sessionId);
+      console.log(`🗑️ Cleared terminal cache for session: ${sessionId}`);
+    } else {
+      this.terminalCache.clear();
+      console.log('🗑️ Cleared all terminal cache');
+    }
+  }
+
+  // Get current terminal cache status
+  getTerminalCacheStatus(): { size: number, sessions: string[] } {
+    return {
+      size: this.terminalCache.size,
+      sessions: Array.from(this.terminalCache.keys())
+    };
   }
 }
 
