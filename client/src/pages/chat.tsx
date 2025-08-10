@@ -101,21 +101,30 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <ChatHeader 
-        isOnline={isConnected} 
-        conversationId={conversationId}
-      />
+    <div className="h-screen flex flex-col bg-gray-50 relative">
+      {/* Chat Header - Fixed */}
+      <div className="flex-shrink-0 sticky top-0 z-10">
+        <ChatHeader 
+          isOnline={isConnected} 
+          conversationId={conversationId}
+        />
+      </div>
       
-      <MessageList 
-        messages={messages} 
-        isTyping={isTyping}
-      />
+      {/* Message List - Scrollable area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <MessageList 
+          messages={messages} 
+          isTyping={isTyping}
+        />
+      </div>
       
-      <MessageInput 
-        onSendMessage={handleSendMessage}
-        onTyping={handleTyping}
-      />
+      {/* Message Input - Fixed at bottom */}
+      <div className="flex-shrink-0 sticky bottom-0 z-10">
+        <MessageInput 
+          onSendMessage={handleSendMessage}
+          onTyping={handleTyping}
+        />
+      </div>
     </div>
   );
 }
