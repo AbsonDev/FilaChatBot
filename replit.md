@@ -1,0 +1,72 @@
+# Overview
+
+This is a WhatsApp-style customer support chat application built with React (frontend) and Express.js (backend). The application provides real-time messaging functionality between users and customer service agents, featuring a modern UI with WhatsApp-inspired design elements. It includes conversation management, real-time WebSocket communication, and a complete customer support workflow with queue management and agent assignment.
+
+# User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+# System Architecture
+
+## Frontend Architecture
+
+The frontend is built using **React with TypeScript** and follows a component-based architecture:
+
+- **UI Framework**: Uses shadcn/ui components built on top of Radix UI primitives for consistent, accessible design
+- **Styling**: Tailwind CSS with custom CSS variables for WhatsApp-inspired theming (greens, message bubbles, etc.)
+- **State Management**: React Query for server state management and WebSocket integration for real-time updates
+- **Routing**: Uses Wouter for lightweight client-side routing
+- **Build System**: Vite for fast development and optimized production builds
+
+The component structure follows a clear separation between UI components (`/components/ui/`), chat-specific components (`/components/`), and page-level components (`/pages/`).
+
+## Backend Architecture
+
+The backend uses **Express.js with TypeScript** in an ESM module setup:
+
+- **API Structure**: RESTful endpoints for conversation and message management
+- **Real-time Communication**: WebSocket server for instant messaging and typing indicators
+- **Database Layer**: Drizzle ORM with PostgreSQL for data persistence
+- **Session Management**: In-memory storage implementation with interface for easy database migration
+- **Development Setup**: Custom Vite integration for seamless full-stack development
+
+## Data Storage Solutions
+
+**Database Schema** (using Drizzle ORM):
+- `conversations`: Manages chat sessions with user, agent assignment, status, and queue position
+- `messages`: Stores all messages with sender information, content, and read status
+- `agents`: Tracks customer service agents and their availability status
+
+**Storage Pattern**: Repository pattern with `IStorage` interface allows switching between in-memory storage (development) and database storage (production) without code changes.
+
+## Authentication and Authorization
+
+Currently implements **basic session-based authentication** without user accounts:
+- Generates random user IDs for anonymous users
+- Agent identification through simple ID-based system
+- No complex role-based permissions (designed for customer support use case)
+
+## External Dependencies
+
+### Core Framework Dependencies
+- **@neondatabase/serverless**: PostgreSQL database connection for serverless deployments
+- **drizzle-orm & drizzle-kit**: Type-safe database ORM with schema migrations
+- **@tanstack/react-query**: Server state management and caching
+- **wouter**: Lightweight routing library for React
+
+### UI and Styling Dependencies
+- **@radix-ui/***: Comprehensive set of headless UI primitives for accessibility
+- **tailwindcss**: Utility-first CSS framework
+- **class-variance-authority**: Type-safe variant handling for component styling
+- **lucide-react**: Modern icon library
+
+### Real-time Communication
+- **ws**: WebSocket implementation for real-time messaging
+- **connect-pg-simple**: PostgreSQL session store for Express sessions
+
+### Development Tools
+- **vite**: Fast build tool and development server
+- **typescript**: Type safety and developer experience
+- **@replit/vite-plugin-***: Replit-specific development plugins
+
+The application is designed to be easily deployable on Replit with built-in support for PostgreSQL databases and includes development-specific tooling for the Replit environment.
