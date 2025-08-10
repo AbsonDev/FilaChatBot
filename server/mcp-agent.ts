@@ -1,40 +1,47 @@
 import { storage } from "./storage";
 
-// MCP Agent that handles intelligent responses using the MCP protocol
+// MCP Agent that handles intelligent responses using the Filazero Agent
 export class MCPAgent {
-  private mcpUrl: string;
+  private filazeroAgentUrl: string;
   private agentId: string;
 
-  constructor(mcpUrl: string = "https://mcp-filazero.vercel.app/mcp") {
-    this.mcpUrl = mcpUrl;
-    this.agentId = "mcp-agent-001";
+  constructor() {
+    this.filazeroAgentUrl = process.env.FILAZERO_AGENT_URL || "http://localhost:3001";
+    this.agentId = "filazero-chatbot-proxy";
   }
 
-  // Call MCP service to get intelligent response
+  // Call Filazero Agent to get intelligent AI response
   async callMCP(userMessage: string, conversationContext: any): Promise<string> {
     try {
-      // First, try to call the actual MCP endpoint
-      const response = await fetch(this.mcpUrl, {
+      console.log(`🤖 Calling Filazero Agent: ${userMessage}`);
+      
+      // Call the Filazero Agent API
+      const response = await fetch(`${this.filazeroAgentUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'generate_response',
           message: userMessage,
-          context: conversationContext,
-          agent_id: this.agentId
+          sessionId: conversationContext?.conversation_id || `chat-${Date.now()}`,
+          context: {
+            userId: conversationContext?.user_id,
+            queuePosition: conversationContext?.queue_position,
+            previousMessages: conversationContext?.previous_messages?.slice(-3) // Last 3 messages
+          }
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        return data.response || this.getLocalResponse(userMessage);
+        console.log('✅ Filazero Agent response received');
+        return data.response || 'Desculpe, não consegui processar sua mensagem. Tente novamente.';
       } else {
-        throw new Error(`MCP service returned ${response.status}`);
+        throw new Error(`Filazero Agent returned ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.log('MCP service unavailable, using local agent logic:', error);
+      console.error('❌ Filazero Agent unavailable:', error);
+      console.log('📱 Using fallback response...');
       return this.getLocalResponse(userMessage);
     }
   }
@@ -118,11 +125,11 @@ export class MCPAgent {
     }
   }
 
-  // Check MCP service status
+  // Check Filazero Agent status
   async checkMCPStatus(): Promise<{connected: boolean, latency?: number}> {
     try {
       const startTime = Date.now();
-      const response = await fetch(this.mcpUrl, {
+      const response = await fetch(`${this.filazeroAgentUrl}/api/health`, {
         method: 'GET'
       });
       const latency = Date.now() - startTime;
@@ -132,6 +139,7 @@ export class MCPAgent {
         latency
       };
     } catch (error) {
+      console.error('Failed to check Filazero Agent status:', error);
       return { connected: false };
     }
   }

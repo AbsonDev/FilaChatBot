@@ -1,0 +1,528 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filazero MCP - Atendimento ao Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'whatsapp': {
+                            primary: '#25D366',
+                            secondary: '#128C7E',
+                            accent: '#00A884',
+                            bubble: '#DCF8C6',
+                            bg: '#F0F2F5',
+                            text: '#111B21',
+                            gray: '#8696a0',
+                            dark: '#111b21'
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-whatsapp-bg text-whatsapp-text">
+
+<!-- @COMPONENT: MainLayout -->
+<div class="flex h-screen overflow-hidden">
+    
+    <!-- @COMPONENT: ConversationSidebar -->
+    <div id="sidebar" class="w-80 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 lg:w-80 md:w-80 sm:w-full sm:absolute sm:left-0 sm:z-50 sm:h-full sm:shadow-xl">
+        
+        <!-- Header with Admin Controls -->
+        <div class="bg-whatsapp-bg px-4 py-3 border-b border-gray-200">
+            <div class="flex items-center justify-between mb-3">
+                <h1 class="text-lg font-semibold text-whatsapp-text">Filazero MCP</h1>
+                <div class="flex items-center space-x-2">
+                    <!-- MCP Connection Status -->
+                    <div class="flex items-center space-x-1">
+                        <div class="w-2 h-2 bg-whatsapp-primary rounded-full animate-pulse"></div>
+                        <span class="text-xs text-whatsapp-gray">MCP Conectado</span>
+                    </div>
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-cog text-whatsapp-gray"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Admin Stats Panel -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <div class="bg-white p-2 rounded-lg text-center">
+                    <div class="text-xs text-whatsapp-gray">Ativas</div>
+                    <div class="text-sm font-semibold text-whatsapp-primary" data-bind="stats.activeConversations">12</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg text-center">
+                    <div class="text-xs text-whatsapp-gray">Fila</div>
+                    <div class="text-sm font-semibold text-orange-500" data-bind="stats.queueLength">3</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg text-center">
+                    <div class="text-xs text-whatsapp-gray">Hoje</div>
+                    <div class="text-sm font-semibold text-blue-500" data-bind="stats.todayTotal">47</div>
+                </div>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-whatsapp-gray text-sm"></i>
+                <input type="text" placeholder="Buscar conversas..." 
+                       class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-whatsapp-primary">
+            </div>
+        </div>
+
+        <!-- Conversation List -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- @MAP: conversations.map(conversation => ( -->
+            
+            <!-- Active Conversation -->
+            <div class="px-3 py-3 hover:bg-gray-50 cursor-pointer border-l-4 border-whatsapp-primary bg-gray-50 transition-colors" data-event="click:selectConversation">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 bg-whatsapp-primary rounded-full flex items-center justify-center text-white font-medium">
+                            MF
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-whatsapp-primary rounded-full border-2 border-white"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-medium text-whatsapp-text truncate" data-bind="conversation.customerName">Maria Fernanda</h3>
+                            <span class="text-xs text-whatsapp-gray" data-bind="conversation.lastMessageTime">14:35</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-whatsapp-gray truncate" data-bind="conversation.lastMessage">Preciso de ajuda com meu pedido...</p>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-5 h-5 bg-whatsapp-primary rounded-full flex items-center justify-center">
+                                    <span class="text-xs text-white font-medium" data-bind="conversation.unreadCount">2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queue Item -->
+            <div class="px-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-orange-400" data-event="click:selectConversation">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-medium">
+                            JS
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-orange-400 rounded-full border-2 border-white flex items-center justify-center">
+                            <i class="fas fa-clock text-xs text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-medium text-whatsapp-text truncate" data-bind="conversation.customerName">João Silva</h3>
+                            <span class="text-xs text-orange-500 font-medium">Na fila</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-whatsapp-gray truncate" data-bind="conversation.lastMessage">Olá, gostaria de falar com vocês</p>
+                            <div class="text-xs text-orange-500">
+                                <span data-bind="conversation.queuePosition">Pos. 2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regular Conversation -->
+            <div class="px-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors" data-event="click:selectConversation">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
+                            AR
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-medium text-whatsapp-text truncate" data-bind="conversation.customerName">Ana Regina</h3>
+                            <span class="text-xs text-whatsapp-gray" data-bind="conversation.lastMessageTime">Ontem</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-whatsapp-gray truncate" data-bind="conversation.lastMessage">Obrigada pelo atendimento!</p>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-double text-blue-400 text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @END_MAP )) -->
+        </div>
+
+        <!-- Queue Management Controls -->
+        <div class="p-3 border-t border-gray-200 bg-whatsapp-bg">
+            <div class="flex items-center space-x-2">
+                <button class="flex-1 bg-whatsapp-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-whatsapp-secondary transition-colors" data-event="click:processQueue" data-implementation="Should integrate with MCP Filazero queue processing">
+                    <i class="fas fa-play mr-2"></i>
+                    Processar Fila
+                </button>
+                <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" data-event="click:pauseQueue">
+                    <i class="fas fa-pause text-whatsapp-gray"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ConversationSidebar -->
+
+    <!-- @COMPONENT: ChatArea -->
+    <div class="flex-1 flex flex-col">
+        
+        <!-- Chat Header -->
+        <div class="bg-whatsapp-bg px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Mobile menu toggle -->
+                <button class="lg:hidden p-2 hover:bg-gray-100 rounded-lg" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-whatsapp-gray"></i>
+                </button>
+                
+                <div class="w-10 h-10 bg-whatsapp-primary rounded-full flex items-center justify-center text-white font-medium">
+                    MF
+                </div>
+                <div>
+                    <h2 class="font-medium text-whatsapp-text" data-bind="currentConversation.customerName">Maria Fernanda</h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-whatsapp-gray" data-bind="currentConversation.status">Online</span>
+                        <div class="w-1 h-1 bg-whatsapp-gray rounded-full"></div>
+                        <span class="text-sm text-whatsapp-gray">Cliente desde 2023</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- MCP Queue Controls -->
+                <div class="hidden md:flex items-center space-x-2 mr-4">
+                    <div class="text-xs text-whatsapp-gray">
+                        <span>Fila MCP:</span>
+                        <span class="text-whatsapp-primary font-medium" data-bind="mcp.queueStatus">Ativa</span>
+                    </div>
+                </div>
+                
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:searchInChat">
+                    <i class="fas fa-search text-whatsapp-gray"></i>
+                </button>
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:openChatOptions">
+                    <i class="fas fa-ellipsis-v text-whatsapp-gray"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4" id="messagesContainer">
+            <!-- @MAP: messages.map(message => ( -->
+            
+            <!-- System Message - MCP Integration -->
+            <div class="text-center">
+                <div class="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                    <i class="fas fa-robot mr-2"></i>
+                    Cliente adicionado à fila via MCP Filazero
+                </div>
+            </div>
+
+            <!-- Incoming Message -->
+            <div class="flex items-start space-x-2">
+                <div class="w-8 h-8 bg-whatsapp-primary rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    MF
+                </div>
+                <div class="max-w-xs lg:max-w-md">
+                    <div class="bg-white p-3 rounded-lg rounded-tl-sm shadow-sm">
+                        <p class="text-whatsapp-text" data-bind="message.content">Olá! Preciso de ajuda com meu pedido #12345. Não consegui rastrear a entrega.</p>
+                    </div>
+                    <div class="flex items-center space-x-1 mt-1">
+                        <span class="text-xs text-whatsapp-gray" data-bind="message.timestamp">14:30</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outgoing Message -->
+            <div class="flex items-start space-x-2 justify-end">
+                <div class="max-w-xs lg:max-w-md">
+                    <div class="bg-whatsapp-bubble p-3 rounded-lg rounded-tr-sm shadow-sm">
+                        <p class="text-whatsapp-text" data-bind="message.content">Olá Maria! Vou verificar seu pedido agora mesmo. Um momento por favor.</p>
+                    </div>
+                    <div class="flex items-center justify-end space-x-1 mt-1">
+                        <span class="text-xs text-whatsapp-gray" data-bind="message.timestamp">14:31</span>
+                        <i class="fas fa-check-double text-blue-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="w-8 h-8 bg-whatsapp-secondary rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    A
+                </div>
+            </div>
+
+            <!-- MCP Action Message -->
+            <div class="flex items-start space-x-2 justify-end">
+                <div class="max-w-xs lg:max-w-md">
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-3 rounded-lg">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i class="fas fa-robot text-blue-600"></i>
+                            <span class="text-sm font-medium text-blue-800">Ação MCP</span>
+                        </div>
+                        <p class="text-sm text-blue-700" data-bind="message.mcpAction">Pedido #12345 consultado. Status: Em trânsito. Previsão: 2 dias úteis.</p>
+                    </div>
+                    <div class="flex items-center justify-end space-x-1 mt-1">
+                        <span class="text-xs text-whatsapp-gray" data-bind="message.timestamp">14:32</span>
+                        <i class="fas fa-check-double text-blue-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    <i class="fas fa-robot"></i>
+                </div>
+            </div>
+
+            <!-- Another Outgoing Message -->
+            <div class="flex items-start space-x-2 justify-end">
+                <div class="max-w-xs lg:max-w-md">
+                    <div class="bg-whatsapp-bubble p-3 rounded-lg rounded-tr-sm shadow-sm">
+                        <p class="text-whatsapp-text" data-bind="message.content">Seu pedido está em trânsito! Deve chegar em até 2 dias úteis. Você receberá um código de rastreamento por email em breve.</p>
+                    </div>
+                    <div class="flex items-center justify-end space-x-1 mt-1">
+                        <span class="text-xs text-whatsapp-gray" data-bind="message.timestamp">14:33</span>
+                        <i class="fas fa-check-double text-blue-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="w-8 h-8 bg-whatsapp-secondary rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    A
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="flex items-start space-x-2" id="typingIndicator" style="display: none;">
+                <div class="w-8 h-8 bg-whatsapp-primary rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    MF
+                </div>
+                <div class="bg-white p-3 rounded-lg rounded-tl-sm shadow-sm">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-whatsapp-gray rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-whatsapp-gray rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                        <div class="w-2 h-2 bg-whatsapp-gray rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @END_MAP )) -->
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="bg-whatsapp-bg px-6 py-4 border-t border-gray-200">
+            <div class="flex items-center space-x-3">
+                <!-- MCP Quick Actions -->
+                <div class="flex space-x-1">
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Consultar Pedido via MCP" data-event="click:mcpOrderLookup" data-implementation="Should integrate with MCP Filazero for order lookup">
+                        <i class="fas fa-search text-whatsapp-gray"></i>
+                    </button>
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Ações MCP" data-event="click:openMcpActions">
+                        <i class="fas fa-robot text-whatsapp-gray"></i>
+                    </button>
+                </div>
+                
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:attachFile">
+                    <i class="fas fa-paperclip text-whatsapp-gray"></i>
+                </button>
+                
+                <div class="flex-1 relative">
+                    <input type="text" 
+                           placeholder="Digite uma mensagem..." 
+                           class="w-full px-4 py-3 bg-white border border-gray-200 rounded-3xl focus:outline-none focus:border-whatsapp-primary text-whatsapp-text"
+                           data-event="keypress:handleKeyPress"
+                           data-implementation="Should handle Enter key for sending messages">
+                    <button class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors">
+                        <i class="fas fa-smile text-whatsapp-gray"></i>
+                    </button>
+                </div>
+                
+                <button class="p-3 bg-whatsapp-primary hover:bg-whatsapp-secondary rounded-full text-white transition-colors" data-event="click:sendMessage" data-implementation="Should send message via WebSocket and integrate with MCP">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+
+            <!-- MCP Status Bar -->
+            <div class="mt-2 flex items-center justify-between text-xs text-whatsapp-gray">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1">
+                        <div class="w-2 h-2 bg-whatsapp-primary rounded-full"></div>
+                        <span>MCP Filazero: Conectado</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i class="fas fa-users"></i>
+                        <span data-bind="mcp.queueInfo">3 na fila • 2 min tempo médio</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span>URL: https://mcp-filazero.vercel.app/mcp</span>
+                    <div class="w-1 h-1 bg-whatsapp-primary rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ChatArea -->
+
+</div>
+<!-- @END_COMPONENT: MainLayout -->
+
+<!-- MCP Actions Modal -->
+<div id="mcpModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-implementation="Modal for MCP Filazero actions">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full m-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-whatsapp-text">Ações MCP Filazero</h3>
+            <button onclick="closeMcpModal()" class="text-whatsapp-gray hover:text-whatsapp-text">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            <button class="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors" data-event="click:mcpConsultOrder">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-search text-blue-600"></i>
+                </div>
+                <div class="text-left">
+                    <div class="font-medium text-whatsapp-text">Consultar Pedido</div>
+                    <div class="text-sm text-whatsapp-gray">Buscar informações do pedido</div>
+                </div>
+            </button>
+            
+            <button class="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors" data-event="click:mcpUpdateQueue">
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-list text-green-600"></i>
+                </div>
+                <div class="text-left">
+                    <div class="font-medium text-whatsapp-text">Atualizar Fila</div>
+                    <div class="text-sm text-whatsapp-gray">Reorganizar posições na fila</div>
+                </div>
+            </button>
+            
+            <button class="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors" data-event="click:mcpTransferChat">
+                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exchange-alt text-purple-600"></i>
+                </div>
+                <div class="text-left">
+                    <div class="font-medium text-whatsapp-text">Transferir Conversa</div>
+                    <div class="text-sm text-whatsapp-gray">Mover para outro agente</div>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // TODO: Implement WebSocket connection for real-time messaging
+    // TODO: Implement MCP Filazero integration using https://mcp-filazero.vercel.app/mcp
+    // TODO: Implement queue management system
+    // TODO: Implement business logic for customer service workflows
+    
+    // Mobile sidebar toggle
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('sm:absolute');
+        sidebar.classList.toggle('sm:left-0');
+        sidebar.classList.toggle('sm:-left-80');
+    };
+
+    // MCP Modal functions
+    window.closeMcpModal = function() {
+        document.getElementById('mcpModal').classList.add('hidden');
+    };
+
+    // Simulate typing indicator
+    function showTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        setTimeout(() => {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }, 3000);
+    }
+
+    // Simulate message status updates
+    function updateMessageStatus() {
+        const checkIcons = document.querySelectorAll('.fa-check-double');
+        checkIcons.forEach(icon => {
+            setTimeout(() => {
+                icon.classList.remove('text-whatsapp-gray');
+                icon.classList.add('text-blue-400');
+            }, Math.random() * 2000);
+        });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        updateMessageStatus();
+        
+        // Simulate periodic queue updates
+        setInterval(() => {
+            // TODO: Update queue information from MCP Filazero
+        }, 30000);
+    });
+
+    // Event handlers for mock interactions
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('[data-event*="click:openMcpActions"]')) {
+            document.getElementById('mcpModal').classList.remove('hidden');
+        }
+        
+        if (e.target.closest('[data-event*="click:sendMessage"]')) {
+            showTypingIndicator();
+        }
+    });
+
+    // Keyboard event handler
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && e.target.matches('input[type="text"]')) {
+            showTypingIndicator();
+        }
+    });
+
+    // MCP Integration Structure
+    class MCPFilazeroClient {
+        constructor() {
+            this.baseUrl = 'https://mcp-filazero.vercel.app/mcp';
+            this.connected = false;
+        }
+
+        // TODO: Implement actual MCP connection
+        async connect() {
+            try {
+                // Mock connection to MCP Filazero
+                this.connected = true;
+                console.log('Connected to MCP Filazero');
+            } catch (error) {
+                console.error('Failed to connect to MCP:', error);
+            }
+        }
+
+        // TODO: Implement queue management methods
+        async getQueueStatus() {
+            // Mock queue status
+            return {
+                active: true,
+                length: 3,
+                averageWaitTime: 120000 // 2 minutes
+            };
+        }
+
+        async processQueue() {
+            // TODO: Implement queue processing with MCP Filazero
+        }
+
+        async consultOrder(orderId) {
+            // TODO: Implement order lookup via MCP
+        }
+    }
+
+    // Initialize MCP client
+    const mcpClient = new MCPFilazeroClient();
+    mcpClient.connect();
+})();
+</script>
+
+</body>
+</html>

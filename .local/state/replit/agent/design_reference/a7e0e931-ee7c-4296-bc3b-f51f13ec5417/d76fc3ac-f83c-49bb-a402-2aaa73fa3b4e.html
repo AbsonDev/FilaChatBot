@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filazero - Atendimento ao Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'whatsapp-green': '#25D366',
+                        'whatsapp-dark': '#128C7E',
+                        'whatsapp-bg': '#F0F2F5',
+                        'whatsapp-text': '#111B21',
+                        'whatsapp-accent': '#00A884',
+                        'user-bubble': '#DCF8C6',
+                        'agent-bubble': '#FFFFFF'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="h-full bg-whatsapp-bg font-inter overflow-hidden">
+
+<!-- @COMPONENT: ChatApplication [Main container for the entire chat application] -->
+<div class="h-screen flex flex-col bg-whatsapp-bg">
+
+    <!-- @COMPONENT: ChatHeader [Header with company info and status] -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+        <!-- @END_COMPONENT: ChatHeader -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-whatsapp-green rounded-full flex items-center justify-center">
+                    <i class="fas fa-headset text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-whatsapp-text font-semibold text-lg">Filazero Atendimento</h1>
+                    <p class="text-sm text-gray-500 flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        <span data-bind="agent.status">Atendente online</span>
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    ID: <span data-bind="conversation.id">#FZ2024-001</span>
+                </span>
+                <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- @COMPONENT: ChatMessages [Scrollable message container] -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-whatsapp-bg" id="messagesContainer">
+        <!-- @END_COMPONENT: ChatMessages -->
+        
+        <!-- Welcome message -->
+        <div class="flex justify-center">
+            <div class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-sm max-w-md text-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Bem-vindo ao atendimento Filazero! Como podemos ajudá-lo hoje?
+            </div>
+        </div>
+
+        <!-- @MAP: messages.map(message => ( -->
+        <!-- User message -->
+        <div class="flex justify-end" data-mock="true">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-user-bubble rounded-xl rounded-br-sm px-4 py-2 shadow-sm">
+                    <p class="text-whatsapp-text text-sm" data-bind="message.content">
+                        Olá! Tenho uma dúvida sobre meu pedido #12345. Podem me ajudar?
+                    </p>
+                </div>
+                <div class="flex items-center justify-end mt-1 space-x-1">
+                    <span class="text-xs text-gray-400" data-bind="message.timestamp">14:23</span>
+                    <i class="fas fa-check-double text-xs text-blue-500" data-bind="message.read_status"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent typing indicator -->
+        <div class="flex justify-start" id="typingIndicator" style="display: none;">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-agent-bubble border border-gray-200 rounded-xl rounded-bl-sm px-4 py-3 shadow-sm">
+                    <div class="flex items-center space-x-1">
+                        <span class="text-gray-500 text-sm">Atendente está digitando</span>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent message -->
+        <div class="flex justify-start" data-mock="true">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-agent-bubble border border-gray-200 rounded-xl rounded-bl-sm px-4 py-2 shadow-sm">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-xs"></i>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium" data-bind="agent.name">Ana - Atendimento</span>
+                    </div>
+                    <p class="text-whatsapp-text text-sm" data-bind="message.content">
+                        Olá! Claro, posso ajudá-lo com seu pedido. Deixe-me verificar o status do pedido #12345 para você. Um momento, por favor.
+                    </p>
+                </div>
+                <div class="flex items-center mt-1">
+                    <span class="text-xs text-gray-400" data-bind="message.timestamp">14:24</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent message with system info -->
+        <div class="flex justify-start" data-mock="true">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-agent-bubble border border-gray-200 rounded-xl rounded-bl-sm px-4 py-2 shadow-sm">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-xs"></i>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium" data-bind="agent.name">Ana - Atendimento</span>
+                    </div>
+                    <p class="text-whatsapp-text text-sm mb-3" data-bind="message.content">
+                        Encontrei seu pedido! Aqui estão as informações:
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div class="text-xs text-gray-600 mb-2">📦 Pedido #12345</div>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="text-green-600 font-medium">Em transporte</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Previsão:</span>
+                                <span class="text-whatsapp-text">Hoje até 18h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Transportadora:</span>
+                                <span class="text-whatsapp-text">Correios</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center mt-1">
+                    <span class="text-xs text-gray-400" data-bind="message.timestamp">14:25</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- User response -->
+        <div class="flex justify-end" data-mock="true">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-user-bubble rounded-xl rounded-br-sm px-4 py-2 shadow-sm">
+                    <p class="text-whatsapp-text text-sm" data-bind="message.content">
+                        Perfeito! Muito obrigado pela informação. Vou aguardar a entrega.
+                    </p>
+                </div>
+                <div class="flex items-center justify-end mt-1 space-x-1">
+                    <span class="text-xs text-gray-400" data-bind="message.timestamp">14:26</span>
+                    <i class="fas fa-check-double text-xs text-blue-500" data-bind="message.read_status"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent final message -->
+        <div class="flex justify-start" data-mock="true">
+            <div class="max-w-xs lg:max-w-md">
+                <div class="bg-agent-bubble border border-gray-200 rounded-xl rounded-bl-sm px-4 py-2 shadow-sm">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-xs"></i>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium" data-bind="agent.name">Ana - Atendimento</span>
+                    </div>
+                    <p class="text-whatsapp-text text-sm" data-bind="message.content">
+                        De nada! Fico feliz em ajudar. Se precisar de mais alguma coisa, estarei aqui. Tenha um ótimo dia! 😊
+                    </p>
+                </div>
+                <div class="flex items-center mt-1">
+                    <span class="text-xs text-gray-400" data-bind="message.timestamp">14:27</span>
+                </div>
+            </div>
+        </div>
+        <!-- @END_MAP )) -->
+
+    </div>
+
+    <!-- @COMPONENT: MessageInput [Input area for typing messages] -->
+    <div class="bg-white border-t border-gray-200 p-4">
+        <!-- @END_COMPONENT: MessageInput -->
+        <div class="flex items-end space-x-3">
+            <!-- Attachment button -->
+            <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" data-event="click:handleAttachment">
+                <i class="fas fa-paperclip text-lg"></i>
+            </button>
+
+            <!-- Message input -->
+            <div class="flex-1 relative">
+                <textarea 
+                    id="messageInput"
+                    placeholder="Digite sua mensagem..."
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-whatsapp-green focus:border-transparent placeholder-gray-400"
+                    rows="1"
+                    data-bind="currentMessage"
+                    data-event="input:handleInputChange,keydown:handleKeyDown"
+                ></textarea>
+                
+                <!-- Character count -->
+                <div class="absolute bottom-1 right-3 text-xs text-gray-400" id="charCount">
+                    <span data-bind="messageLength">0</span>/1000
+                </div>
+            </div>
+
+            <!-- Send button -->
+            <button 
+                id="sendButton"
+                class="p-3 bg-whatsapp-green hover:bg-whatsapp-dark text-white rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                data-event="click:handleSendMessage"
+                data-implementation="Should validate message and send via MCP protocol"
+            >
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+        <!-- Quick responses -->
+        <div class="flex flex-wrap gap-2 mt-3" id="quickResponses">
+            <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-full transition-colors" data-event="click:insertQuickResponse" data-message="Obrigado!">
+                Obrigado!
+            </button>
+            <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-full transition-colors" data-event="click:insertQuickResponse" data-message="Preciso de mais informações">
+                Preciso de mais informações
+            </button>
+            <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-full transition-colors" data-event="click:insertQuickResponse" data-message="Como posso ajudar?">
+                Como posso ajudar?
+            </button>
+        </div>
+    </div>
+
+    <!-- @COMPONENT: ConnectionStatus [MCP connection indicator] -->
+    <div class="bg-gray-50 border-t border-gray-200 px-4 py-2">
+        <!-- @END_COMPONENT: ConnectionStatus -->
+        <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
+                    <div class="w-2 h-2 bg-green-500 rounded-full" id="mcpStatus" data-bind="mcp.connectionStatus"></div>
+                    <span class="text-gray-600">MCP Filazero</span>
+                </div>
+                <span class="text-gray-400">|</span>
+                <span class="text-gray-600">Fila: <span class="font-medium" data-bind="queue.position">2</span></span>
+                <span class="text-gray-400">|</span>
+                <span class="text-gray-600">Tempo: <span class="font-medium" data-bind="queue.waitTime">3min</span></span>
+            </div>
+            <div class="text-gray-400">
+                <i class="fas fa-shield-alt mr-1"></i>
+                Criptografado
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- @END_COMPONENT: ChatApplication -->
+
+<!-- @STATE: currentMessage:string = "" -->
+<!-- @STATE: isTyping:boolean = false -->
+<!-- @STATE: messages:Array = [] -->
+<!-- @STATE: mcpConnection:boolean = true -->
+<!-- @STATE: queuePosition:number = 2 -->
+
+<script>
+(function() {
+    'use strict';
+    
+    // TODO: Implement MCP Filazero integration with https://mcp-filazero.vercel.app/mcp
+    // TODO: Implement real-time WebSocket connection for messaging
+    // TODO: Implement queue management system
+    // TODO: Implement message persistence and history
+    
+    const messageInput = document.getElementById('messageInput');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const sendButton = document.getElementById('sendButton');
+    const charCount = document.getElementById('charCount');
+    const typingIndicator = document.getElementById('typingIndicator');
+    
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        
+        // Update character count
+        const count = this.value.length;
+        charCount.querySelector('span').textContent = count;
+        
+        // Enable/disable send button
+        sendButton.disabled = count === 0 || count > 1000;
+    });
+    
+    // Send message on Enter (Shift+Enter for new line)
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Send message function
+    sendButton.addEventListener('click', sendMessage);
+    
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // TODO: Send message via MCP protocol to Filazero server
+        // TODO: Add message to conversation history
+        // TODO: Clear input and show typing indicator
+        
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        charCount.querySelector('span').textContent = '0';
+        sendButton.disabled = true;
+        
+        // Simulate agent typing
+        showTypingIndicator();
+    }
+    
+    function showTypingIndicator() {
+        typingIndicator.style.display = 'flex';
+        scrollToBottom();
+        
+        // TODO: Replace with real agent response via MCP
+        setTimeout(() => {
+            typingIndicator.style.display = 'none';
+        }, 2000);
+    }
+    
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Quick response buttons
+    document.querySelectorAll('[data-event*="insertQuickResponse"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const message = this.dataset.message;
+            messageInput.value = message;
+            messageInput.focus();
+            messageInput.dispatchEvent(new Event('input'));
+        });
+    });
+    
+    // Auto-scroll to bottom on page load
+    scrollToBottom();
+    
+    // MCP Connection Management
+    function initializeMCP() {
+        // TODO: Initialize connection to MCP Filazero server
+        // TODO: Handle queue updates and position changes
+        // TODO: Implement reconnection logic
+        
+        console.log('Initializing MCP connection to https://mcp-filazero.vercel.app/mcp');
+    }
+    
+    // Initialize MCP on page load
+    initializeMCP();
+    
+    // @FUNCTIONALITY: This chat interface should implement real-time messaging using WebSocket
+    // @FUNCTIONALITY: MCP integration should handle queue management and agent assignment
+    // @FUNCTIONALITY: Message history should be persistent and retrievable
+    // @FUNCTIONALITY: Should support file attachments and rich media
+    
+})();
+</script>
+
+</body>
+</html>
