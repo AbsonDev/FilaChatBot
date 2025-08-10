@@ -106,4 +106,8 @@ The project is configured for production deployment with:
 - ✅ Updated production scripts to use correct NODE_ENV
 - ✅ Verified build process creates optimized assets (21.5kb backend, 283kb frontend)
 - ✅ Created alternative start.sh script for deployment
-- ⚠️ Manual fix required: Update .replit file deployment section to use production commands
+- ✅ Created comprehensive DEPLOYMENT_FIX.md with manual steps
+- ⚠️ **MANUAL FIX REQUIRED**: Update .replit file to change deployment run command from "npm run dev" to "npm start" and add build command "npm run build"
+
+### Deployment Issue Resolution
+The deployment error "Security block: Run command contains 'dev' which is not allowed for production deployments" occurs because the .replit file still references development commands. All production scripts are correctly configured in package.json, but the deployment configuration needs manual updating through the Replit interface (see DEPLOYMENT_FIX.md for detailed instructions).
