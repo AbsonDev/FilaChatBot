@@ -77,3 +77,25 @@ Currently implements **basic session-based authentication** without user account
 - **@replit/vite-plugin-***: Replit-specific development plugins
 
 The application is designed to be easily deployable on Replit with built-in support for PostgreSQL databases and includes development-specific tooling for the Replit environment.
+
+## Deployment Configuration
+
+The project is configured for production deployment with:
+
+### Production Scripts
+- `npm run build`: Creates optimized production builds for both frontend (Vite) and backend (esbuild)
+- `npm start`: Runs the production server from built files
+- Frontend builds to `dist/public/` with static asset optimization
+- Backend builds to `dist/index.js` as a bundled Node.js module
+
+### Environment Handling
+- Development: Uses Vite dev server with HMR and real-time compilation
+- Production: Serves pre-built static files with Express.js
+- Server automatically detects environment via `NODE_ENV` variable
+- Port configuration via `PORT` environment variable (defaults to 5000)
+
+### Deployment Ready Features
+- Static file serving optimized for production
+- WebSocket support in both dev and production modes
+- Environment variable configuration for external services
+- Built-in error handling and logging for production monitoring
