@@ -1,4 +1,4 @@
-import { User, Check, CheckCheck } from "lucide-react";
+import { Check, CheckCheck } from "lucide-react";
 import type { Message } from "@shared/schema";
 
 interface MessageBubbleProps {
@@ -17,8 +17,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     return (
       <div className="flex justify-end">
         <div className="max-w-xs lg:max-w-md">
-          <div className="bg-user-bubble rounded-xl rounded-br-sm px-4 py-2 shadow-sm">
-            <p className="text-whatsapp-text text-sm">{message.content}</p>
+          <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-2.5">
+            <p className="text-sm leading-relaxed">{message.content}</p>
           </div>
           <div className="flex items-center justify-end mt-1 space-x-1">
             <span className="text-xs text-gray-400">{timestamp}</span>
@@ -37,14 +37,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     return (
       <div className="flex justify-start">
         <div className="max-w-xs lg:max-w-md">
-          <div className="bg-agent-bubble border border-gray-200 rounded-xl rounded-bl-sm px-4 py-2 shadow-sm">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-6 h-6 bg-whatsapp-green rounded-full flex items-center justify-center">
-                <User className="text-white w-3 h-3" />
-              </div>
-              <span className="text-xs text-gray-600 font-medium">Agente MCP - Filazero</span>
-            </div>
-            <p className="text-whatsapp-text text-sm">{message.content}</p>
+          <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-2.5">
+            <p className="text-gray-800 text-sm leading-relaxed">{message.content}</p>
           </div>
           <div className="flex items-center mt-1">
             <span className="text-xs text-gray-400">{timestamp}</span>

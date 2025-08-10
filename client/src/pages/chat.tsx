@@ -91,17 +91,17 @@ export default function ChatPage() {
 
   if (!conversationId) {
     return (
-      <div className="h-screen flex items-center justify-center bg-whatsapp-bg">
+      <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-whatsapp-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-whatsapp-text">Conectando ao atendimento...</p>
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Conectando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-whatsapp-bg">
+    <div className="h-screen flex flex-col bg-gray-50">
       <ChatHeader 
         isOnline={isConnected} 
         conversationId={conversationId}
@@ -116,25 +116,6 @@ export default function ChatPage() {
         onSendMessage={handleSendMessage}
         onTyping={handleTyping}
       />
-      
-      {/* Connection Status */}
-      <div className="bg-gray-50 border-t border-gray-200 px-4 py-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
-              <div className={`w-2 h-2 rounded-full ${mcpStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-gray-600">Agente MCP</span>
-            </div>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-600">Fila: <span className="font-medium">{queuePosition}</span></span>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-600">Tempo: <span className="font-medium">{waitTime}min</span></span>
-          </div>
-          <div className="text-gray-400">
-            🔒 Seguro
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
