@@ -85,6 +85,7 @@ The project is configured for production deployment with:
 ### Production Scripts
 - `npm run build`: Creates optimized production builds for both frontend (Vite) and backend (esbuild)
 - `npm start`: Runs the production server from built files
+- `./start.sh`: Alternative production script that handles build + start with error handling
 - Frontend builds to `dist/public/` with static asset optimization
 - Backend builds to `dist/index.js` as a bundled Node.js module
 
@@ -99,3 +100,10 @@ The project is configured for production deployment with:
 - WebSocket support in both dev and production modes
 - Environment variable configuration for external services
 - Built-in error handling and logging for production monitoring
+
+### Recent Deployment Fixes (August 10, 2025)
+- ✅ Fixed build configuration for production deployment
+- ✅ Updated production scripts to use correct NODE_ENV
+- ✅ Verified build process creates optimized assets (21.5kb backend, 283kb frontend)
+- ✅ Created alternative start.sh script for deployment
+- ⚠️ Manual fix required: Update .replit file deployment section to use production commands
