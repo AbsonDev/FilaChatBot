@@ -6,12 +6,14 @@ export class MCPAgent {
   private agentId: string;
 
   constructor() {
-    this.filazeroAgentUrl = process.env.FILAZERO_AGENT_URL || "http://localhost:3001";
+    // Always use Vercel agent (hardcoded fallback for reliability)
+    this.filazeroAgentUrl = process.env.FILAZERO_AGENT_URL || "https://filazero-agent.vercel.app";
     this.agentId = "filazero-chatbot-proxy";
     
     console.log(`🔗 FilaChatBot MCP Agent initialized:`);
     console.log(`   Agent URL: ${this.filazeroAgentUrl}`);
     console.log(`   Agent ID: ${this.agentId}`);
+    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
   }
 
   // Call Filazero Agent to get intelligent AI response

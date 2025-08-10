@@ -1,4 +1,13 @@
-import 'dotenv/config';
+// Load environment variables (Node.js 20+)
+try {
+  if (typeof process.loadEnvFile === 'function') {
+    process.loadEnvFile('.env');
+  }
+} catch (error) {
+  // Fallback: env vars should be available from environment
+  console.log('Note: Using system environment variables');
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
