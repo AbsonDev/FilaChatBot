@@ -8,12 +8,18 @@ export class MCPAgent {
   constructor() {
     this.filazeroAgentUrl = process.env.FILAZERO_AGENT_URL || "http://localhost:3001";
     this.agentId = "filazero-chatbot-proxy";
+    
+    console.log(`🔗 FilaChatBot MCP Agent initialized:`);
+    console.log(`   Agent URL: ${this.filazeroAgentUrl}`);
+    console.log(`   Agent ID: ${this.agentId}`);
   }
 
   // Call Filazero Agent to get intelligent AI response
   async callMCP(userMessage: string, conversationContext: any): Promise<string> {
     try {
-      console.log(`🤖 Calling Filazero Agent: ${userMessage}`);
+      console.log(`🤖 Calling Filazero Agent:`);
+      console.log(`   URL: ${this.filazeroAgentUrl}/api/chat`);
+      console.log(`   Message: ${userMessage}`);
       
       // Call the Filazero Agent API
       const response = await fetch(`${this.filazeroAgentUrl}/api/chat`, {
@@ -34,9 +40,15 @@ export class MCPAgent {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Filazero Agent response received');
+        console.log('✅ Filazero Agent response received:');
+        console.log(`   Status: ${response.status}`);
+        console.log(`   Response length: ${data.response?.length || 0} chars`);
+        console.log(`   Tools used: ${data.toolsUsed || 'none'}`);
         return data.response || 'Desculpe, não consegui processar sua mensagem. Tente novamente.';
       } else {
+        const errorText = await response.text();
+        console.error(`❌ Filazero Agent error: ${response.status} ${response.statusText}`);
+        console.error(`   Error details: ${errorText}`);
         throw new Error(`Filazero Agent returned ${response.status}: ${response.statusText}`);
       }
     } catch (error) {

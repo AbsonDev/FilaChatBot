@@ -6,16 +6,13 @@ This project is configured to work with the **Filazero Agent** backend deployed 
 
 ### 📡 Environment Configuration
 
-#### Development (Local)
-```env
-FILAZERO_AGENT_URL=http://localhost:3001
-```
-
-#### Production (Vercel/Deployment)
+#### All Environments (Development + Production)
 ```env
 FILAZERO_AGENT_URL=https://filazero-agent.vercel.app
 ```
 **✅ Real URL**: https://filazero-agent.vercel.app
+
+**Note**: Both development and production use the same Vercel agent URL. This allows testing in Replit and other cloud environments without running a local agent.
 
 ### 🔧 Setup Steps
 
@@ -24,8 +21,9 @@ FILAZERO_AGENT_URL=https://filazero-agent.vercel.app
    - Test the health endpoint: `https://filazero-agent.vercel.app/api/health`
 
 2. **Configure Environment:**
-   - For local development: use `.env` with localhost URL
-   - For production: use `.env.production` with Vercel URL
+   - All environments use the same Vercel URL
+   - `.env` and `.env.production` both point to https://filazero-agent.vercel.app
+   - Perfect for Replit, local development, and production
 
 3. **Run FilaChatBot:**
    ```bash
