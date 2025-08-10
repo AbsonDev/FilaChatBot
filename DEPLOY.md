@@ -15,11 +15,12 @@ FILAZERO_AGENT_URL=http://localhost:3001
 ```env
 FILAZERO_AGENT_URL=https://filazero-agent.vercel.app
 ```
+**✅ Real URL**: https://filazero-agent.vercel.app
 
 ### 🔧 Setup Steps
 
 1. **Deploy Filazero Agent First:**
-   - Make sure https://filazero-agent.vercel.app is deployed and working
+   - ✅ **DEPLOYED**: https://filazero-agent.vercel.app is live and working
    - Test the health endpoint: `https://filazero-agent.vercel.app/api/health`
 
 2. **Configure Environment:**
@@ -48,6 +49,7 @@ The Filazero Agent is already configured to accept requests from:
    ```bash
    curl https://filazero-agent.vercel.app/api/health
    ```
+   **Expected**: `{"status":"healthy","services":{"groq":"connected","mcp":"connected"}}`
 
 2. **Chat Test:**
    ```bash
@@ -55,6 +57,11 @@ The Filazero Agent is already configured to accept requests from:
      -H "Content-Type: application/json" \
      -d '{"message": "Olá!", "sessionId": "test"}'
    ```
+   **Expected**: Portuguese response from Filazero Assistant
+
+3. **Current Status**: 
+   - ✅ API responding
+   - ⚠️ Groq model needs update in production (deploy latest changes)
 
 3. **Local Test (when FilaChatBot is running):**
    - Open browser to http://localhost:3000
