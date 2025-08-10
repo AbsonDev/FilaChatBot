@@ -1,14 +1,20 @@
 #!/bin/bash
 
-# Production start script for Replit deployment
-echo "Starting FilaChatBot in production mode..."
+# Production script for Replit deployment
+# This script handles both building and starting the application
 
-# Build the application if dist doesn't exist
-if [ ! -d "dist" ]; then
-  echo "Building application..."
-  npm run build
+echo "🚀 FilaChatBot Production Deployment"
+echo "======================================"
+
+# Always build for production deployment
+echo "📦 Building application for production..."
+npm run build
+
+if [ $? -eq 0 ]; then
+    echo "✅ Build successful!"
+    echo "🌟 Starting production server..."
+    NODE_ENV=production npm start
+else
+    echo "❌ Build failed!"
+    exit 1
 fi
-
-# Start the production server
-echo "Starting production server..."
-NODE_ENV=production npm start
