@@ -153,7 +153,7 @@ export class MCPAgent {
       console.log(`   Message: ${userMessage}`);
       
       // Use provided accessKey or fallback to default for backward compatibility
-      const terminalAccessKey = accessKey || conversationContext?.terminal_access_key || 'd6779a60360d455b9af96c1b68e066c5';
+      const terminalAccessKey = accessKey || conversationContext?.terminal_access_key || '1d1373dcf045408aa3b13914f2ac1076';
       console.log(`   Using terminal accessKey: ${terminalAccessKey.substring(0, 8)}...`);
       
       // Get terminal info if this is the first message or we don't have it
@@ -163,9 +163,9 @@ export class MCPAgent {
       if (!terminalInfo || conversationContext.is_first_message) {
         terminalInfo = await this.getTerminalInfo(terminalAccessKey, conversationContext.conversation_id);
         
-        // For first message, prepend instruction to use get_terminal
+        // For first message, prepend instruction to use get_terminal  
         if (conversationContext.is_first_message) {
-          enhancedMessage = `[SYSTEM: Esta é a primeira mensagem da conversa. Use a ferramenta get_terminal com accessKey ${terminalAccessKey} para obter informações do terminal antes de responder]\n\n${userMessage}`;
+          enhancedMessage = `[SYSTEM: Esta é a primeira mensagem da conversa. Use a ferramenta get_terminal com accessKey 1d1373dcf045408aa3b13914f2ac1076 para obter informações do terminal antes de responder]\n\n${userMessage}`;
         }
       }
       
