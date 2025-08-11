@@ -79,32 +79,69 @@ export class MCPAgent {
     }
   }
 
-  // Validate terminal with accessKey
+  // Validate terminal with accessKey using direct MCP call
   async validateTerminal(accessKey: string): Promise<any> {
     try {
       console.log(`🔐 Validating terminal with accessKey: ${accessKey.substring(0, 8)}...`);
       
-      const terminalData = await this.getTerminalInfo(accessKey);
+      // Call MCP server directly instead of using chat interface
+      const mcpServerUrl = process.env.MCP_SERVER_URL || 'https://mcp-filazero.vercel.app';
+      console.log(`🔧 Using MCP server: ${mcpServerUrl}`);
       
-      if (terminalData) {
-        // Parse terminal data if it's a string
-        const terminal = typeof terminalData === 'string' ? JSON.parse(terminalData) : terminalData;
-        
-        console.log('✅ Terminal validation successful:', {
-          id: terminal.id,
-          name: terminal.name,
-          provider: terminal.provider?.name,
-          location: terminal.location?.name,
-          services: terminal.services?.length || 0
-        });
-        
-        return terminal;
+      const response = await fetch(`${mcpServerUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'get_terminal',
+            arguments: {
+              accessKey: accessKey
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`MCP server returned ${response.status}: ${response.statusText}`);
       }
+
+      const mcpResult = await response.json();
       
-      throw new Error('Terminal não encontrado ou accessKey inválido');
+      if (mcpResult.error) {
+        throw new Error(`MCP error: ${mcpResult.error.message}`);
+      }
+
+      if (!mcpResult.result) {
+        throw new Error('Resposta inválida do servidor MCP');
+      }
+
+      // Extract terminal data from MCP result
+      const terminalDataText = mcpResult.result.content?.[0]?.text;
+      if (!terminalDataText) {
+        throw new Error('Dados do terminal não encontrados na resposta MCP');
+      }
+
+      const terminal = JSON.parse(terminalDataText);
+      
+      console.log('✅ Terminal validation successful:', {
+        id: terminal.id,
+        name: terminal.name,
+        provider: terminal.provider?.name,
+        location: terminal.location?.name,
+        services: terminal.services?.length || 0
+      });
+      
+      return terminal;
+      
     } catch (error) {
       console.error('❌ Terminal validation failed:', error);
-      throw error;
+      const message = error instanceof Error ? error.message : 'Erro desconhecido na validação';
+      throw new Error(message);
     }
   }
 
