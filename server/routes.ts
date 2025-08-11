@@ -76,7 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Process with MCP agent
                 setTimeout(async () => {
                   try {
-                    await mcpAgent.processMessage(message.conversationId!, message.data.content);
+                    // Extract accessKey from conversation context if available
+                    const conversation = await storage.getConversation(message.conversationId!);
+                    const accessKey = (conversation as any)?.terminalAccessKey;
+                    
+                    await mcpAgent.processMessage(message.conversationId!, message.data.content, accessKey);
                     
                     // Get the latest message from the agent
                     const messages = await storage.getMessagesByConversation(message.conversationId!);
@@ -192,15 +196,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Terminal validation endpoint
+  app.post('/api/terminal/validate', async (req, res) => {
+    try {
+      const { accessKey } = req.body;
+      
+      if (!accessKey || typeof accessKey !== 'string') {
+        return res.status(400).json({ 
+          error: 'Access key é obrigatório',
+          message: 'Por favor, forneça um access key válido' 
+        });
+      }
+
+      // Trim and validate format
+      const cleanAccessKey = accessKey.trim();
+      if (cleanAccessKey.length < 10) {
+        return res.status(400).json({ 
+          error: 'Access key muito curto',
+          message: 'Access key deve ter pelo menos 10 caracteres' 
+        });
+      }
+
+      // Validate terminal using MCP agent
+      const terminalInfo = await mcpAgent.validateTerminal(cleanAccessKey);
+      
+      res.json(terminalInfo);
+    } catch (error) {
+      console.error('Terminal validation error:', error);
+      res.status(400).json({ 
+        error: 'Falha na validação do terminal',
+        message: error instanceof Error ? error.message : 'Terminal não encontrado ou access key inválido'
+      });
+    }
+  });
+
   // Manual MCP call endpoint for testing
   app.post('/api/mcp/call', async (req, res) => {
     try {
-      const { message, conversationId } = req.body;
+      const { message, conversationId, accessKey } = req.body;
       if (!message || !conversationId) {
         return res.status(400).json({ error: 'Message and conversationId required' });
       }
 
-      await mcpAgent.processMessage(conversationId, message);
+      await mcpAgent.processMessage(conversationId, message, accessKey);
       res.json({ success: true, message: 'MCP agent processed message' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to call MCP agent' });
@@ -217,9 +255,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/mcp/terminal-cache/:sessionId?', async (req, res) => {
+  app.delete('/api/mcp/terminal-cache/:accessKey?', async (req, res) => {
     try {
-      mcpAgent.clearTerminalCache(req.params.sessionId);
+      mcpAgent.clearTerminalCache(req.params.accessKey);
       res.json({ success: true, message: 'Terminal cache cleared' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to clear terminal cache' });
@@ -229,12 +267,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Force terminal info fetch endpoint for testing
   app.post('/api/mcp/fetch-terminal', async (req, res) => {
     try {
-      const { sessionId } = req.body;
-      if (!sessionId) {
-        return res.status(400).json({ error: 'sessionId required' });
+      const { accessKey, sessionId } = req.body;
+      if (!accessKey) {
+        return res.status(400).json({ error: 'accessKey required' });
       }
 
-      const terminalInfo = await mcpAgent.getTerminalInfo(sessionId);
+      const terminalInfo = await mcpAgent.getTerminalInfo(accessKey, sessionId);
       res.json({ success: true, terminalInfo });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch terminal info' });

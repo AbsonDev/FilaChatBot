@@ -19,19 +19,22 @@ export class MCPAgent {
   }
 
   // Get terminal information using the get_terminal tool
-  async getTerminalInfo(sessionId: string): Promise<any> {
+  async getTerminalInfo(accessKey: string, sessionId?: string): Promise<any> {
     try {
+      // Use accessKey as cache key instead of sessionId
+      const cacheKey = `terminal_${accessKey}`;
+      
       // Check cache first
-      if (this.terminalCache.has(sessionId)) {
-        const cached = this.terminalCache.get(sessionId);
+      if (this.terminalCache.has(cacheKey)) {
+        const cached = this.terminalCache.get(cacheKey);
         // Cache for 5 minutes
         if (cached.timestamp > Date.now() - 300000) {
-          console.log('📱 Using cached terminal info for session:', sessionId);
+          console.log('📱 Using cached terminal info for accessKey:', accessKey.substring(0, 8) + '...');
           return cached.data;
         }
       }
 
-      console.log(`🔍 Fetching terminal info for session: ${sessionId}`);
+      console.log(`🔍 Fetching terminal info for accessKey: ${accessKey.substring(0, 8)}...`);
       
       // Call the Filazero Agent API asking it to use get_terminal tool
       const response = await fetch(`${this.filazeroAgentUrl}/api/chat`, {
@@ -40,13 +43,13 @@ export class MCPAgent {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: "USE_TOOL: get_terminal com accessKey d6779a60360d455b9af96c1b68e066c5",
-          sessionId,
+          message: `USE_TOOL: get_terminal com accessKey ${accessKey}`,
+          sessionId: sessionId || `terminal-validation-${Date.now()}`,
           context: {
             forceToolUse: true,
             toolName: 'get_terminal',
             toolParams: {
-              accessKey: 'd6779a60360d455b9af96c1b68e066c5'
+              accessKey: accessKey
             }
           }
         })
@@ -59,8 +62,8 @@ export class MCPAgent {
         // Extract terminal data from response
         const terminalData = data.terminalData || data.toolResult || data.response;
         
-        // Cache the terminal info
-        this.terminalCache.set(sessionId, {
+        // Cache the terminal info by accessKey
+        this.terminalCache.set(cacheKey, {
           data: terminalData,
           timestamp: Date.now()
         });
@@ -76,23 +79,56 @@ export class MCPAgent {
     }
   }
 
+  // Validate terminal with accessKey
+  async validateTerminal(accessKey: string): Promise<any> {
+    try {
+      console.log(`🔐 Validating terminal with accessKey: ${accessKey.substring(0, 8)}...`);
+      
+      const terminalData = await this.getTerminalInfo(accessKey);
+      
+      if (terminalData) {
+        // Parse terminal data if it's a string
+        const terminal = typeof terminalData === 'string' ? JSON.parse(terminalData) : terminalData;
+        
+        console.log('✅ Terminal validation successful:', {
+          id: terminal.id,
+          name: terminal.name,
+          provider: terminal.provider?.name,
+          location: terminal.location?.name,
+          services: terminal.services?.length || 0
+        });
+        
+        return terminal;
+      }
+      
+      throw new Error('Terminal não encontrado ou accessKey inválido');
+    } catch (error) {
+      console.error('❌ Terminal validation failed:', error);
+      throw error;
+    }
+  }
+
   // Call Filazero Agent to get intelligent AI response
-  async callMCP(userMessage: string, conversationContext: any): Promise<string> {
+  async callMCP(userMessage: string, conversationContext: any, accessKey?: string): Promise<string> {
     try {
       console.log(`🤖 Calling Filazero Agent:`);
       console.log(`   URL: ${this.filazeroAgentUrl}/api/chat`);
       console.log(`   Message: ${userMessage}`);
+      
+      // Use provided accessKey or fallback to default for backward compatibility
+      const terminalAccessKey = accessKey || conversationContext?.terminal_access_key || 'd6779a60360d455b9af96c1b68e066c5';
+      console.log(`   Using terminal accessKey: ${terminalAccessKey.substring(0, 8)}...`);
       
       // Get terminal info if this is the first message or we don't have it
       let terminalInfo = conversationContext.terminal_info;
       let enhancedMessage = userMessage;
       
       if (!terminalInfo || conversationContext.is_first_message) {
-        terminalInfo = await this.getTerminalInfo(conversationContext.conversation_id);
+        terminalInfo = await this.getTerminalInfo(terminalAccessKey, conversationContext.conversation_id);
         
         // For first message, prepend instruction to use get_terminal
         if (conversationContext.is_first_message) {
-          enhancedMessage = `[SYSTEM: Esta é a primeira mensagem da conversa. Use a ferramenta get_terminal com accessKey d6779a60360d455b9af96c1b68e066c5 para obter informações do terminal antes de responder]\n\n${userMessage}`;
+          enhancedMessage = `[SYSTEM: Esta é a primeira mensagem da conversa. Use a ferramenta get_terminal com accessKey ${terminalAccessKey} para obter informações do terminal antes de responder]\n\n${userMessage}`;
         }
       }
       
@@ -113,7 +149,7 @@ export class MCPAgent {
             shouldUseTools: true, // Explicitly tell the agent to use tools
             requiredTools: ['get_terminal'], // Suggest using get_terminal tool
             isFirstMessage: conversationContext.is_first_message,
-            terminalAccessKey: 'd6779a60360d455b9af96c1b68e066c5'
+            terminalAccessKey: terminalAccessKey
           }
         })
       });
@@ -176,7 +212,7 @@ export class MCPAgent {
   }
 
   // Process user message and generate intelligent response
-  async processMessage(conversationId: string, userMessage: string): Promise<void> {
+  async processMessage(conversationId: string, userMessage: string, accessKey?: string): Promise<void> {
     try {
       // Get conversation context
       const conversation = await storage.getConversation(conversationId);
@@ -191,11 +227,12 @@ export class MCPAgent {
         previous_messages: messages.slice(-5), // Last 5 messages for context
         queue_position: conversation?.queuePosition,
         is_first_message: isFirstMessage,
-        terminal_info: null // Will be fetched in callMCP if needed
+        terminal_info: null, // Will be fetched in callMCP if needed
+        terminal_access_key: accessKey // Pass the accessKey in context
       };
 
-      // Call MCP to get intelligent response
-      const response = await this.callMCP(userMessage, context);
+      // Call MCP to get intelligent response with accessKey
+      const response = await this.callMCP(userMessage, context, accessKey);
 
       // Create agent response message
       await storage.createMessage({
@@ -241,11 +278,12 @@ export class MCPAgent {
     }
   }
 
-  // Clear terminal cache for a specific session or all sessions
-  clearTerminalCache(sessionId?: string): void {
-    if (sessionId) {
-      this.terminalCache.delete(sessionId);
-      console.log(`🗑️ Cleared terminal cache for session: ${sessionId}`);
+  // Clear terminal cache for a specific accessKey or all cache
+  clearTerminalCache(accessKey?: string): void {
+    if (accessKey) {
+      const cacheKey = `terminal_${accessKey}`;
+      this.terminalCache.delete(cacheKey);
+      console.log(`🗑️ Cleared terminal cache for accessKey: ${accessKey.substring(0, 8)}...`);
     } else {
       this.terminalCache.clear();
       console.log('🗑️ Cleared all terminal cache');
@@ -253,10 +291,14 @@ export class MCPAgent {
   }
 
   // Get current terminal cache status
-  getTerminalCacheStatus(): { size: number, sessions: string[] } {
+  getTerminalCacheStatus(): { size: number, terminals: string[] } {
+    const terminals = Array.from(this.terminalCache.keys())
+      .filter(key => key.startsWith('terminal_'))
+      .map(key => key.replace('terminal_', '').substring(0, 8) + '...');
+    
     return {
       size: this.terminalCache.size,
-      sessions: Array.from(this.terminalCache.keys())
+      terminals
     };
   }
 }
